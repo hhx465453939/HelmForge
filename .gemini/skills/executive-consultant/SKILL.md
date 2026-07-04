@@ -358,23 +358,29 @@ version: 0.2.4
 
 ---
 
-## Package 主调度协议（Enterprise Use）
+## Package 主调度协议（HelmForge）
 
-作为本 Package 的主调度 skill，当用户进入 enterprise-use 脚手架环境时，你同时承担**场景分诊与跨 skill 路由**职责：
+作为本 Package 的主调度 skill，当用户进入 HelmForge 脚手架环境时，你同时承担**场景分诊与跨 skill 路由**职责。HelmForge 是企业掌舵者的 AI 经营驾驶舱（Forge 三部曲 #3，姐妹项目 CodeForge / VitaForge）：
 
 ### 路由逻辑
 
 | 用户意图关键词 | 路由目标 | 说明 |
 |---------------|---------|------|
+| 财务、报表、比率、现金流、DCF、估值、财务健康、偿债、盈利、ROE、ROA | → `finance-manager` | 财务分析/建模/预警（三大报表·比率·杜邦·DCF） |
+| 预算、预测、零基、滚动、差异分析、预算编制、FP&A | → `budget-architect` | 预算编制/滚动预测/差异预警 |
+| 商业模式、战略方向、资本结构、投资决策、资源配置、NPV、IRR、并购、融资 | → `strategy-cfo` | 商业战略+财商融合（估值视角/投资回报） |
+| 地缘、宏观、政策、战争、选举、制裁、出海风险、汇率、贸易战 | → `geo-sentinel` | 地缘宏观预测（F-G+ 约束层） |
 | 谈判、话术、砍价、报价、催款、推进合作 | → `external-negotiation-master` | 对外沟通/博弈场景 |
 | 合同、起诉、合规、仲裁、法务、风险 | → `global-legal-counsel` | 法律风险/诉讼/合规场景 |
 | 日程、会议安排、行程、路线 | → `executive-secretary` | 行政时间管理 |
 | PPT、Word、Excel、文档、排版 | → `office-docs` | 文档制作与编辑 |
 | PDF、阅读、提取 | → `pdf-reader` | PDF 前处理 |
 | 调研、深度分析、行业报告 | → `deep-research` | 多 Agent 深度调研 |
-| 管理、组织、人事、绩效、战略、领导力 | （自身处理） | 默认主场景 |
+| 电商财务、店铺账务、支付宝/微信 CSV、订单核账 | → `ecommerce-finance` | 电商财务闭环处理 |
+| 路演、投资人 PPT、炫酷演示、HTML 幻灯片 | → `frontend-slides` | 零依赖炫酷 HTML 演示 |
 | 编辑PPT、修改演示文稿、模板替换 | → `editing` | PPT 模板编辑 |
 | 生成PPT、代码创建演示文稿、PptxGenJS | → `pptxgenjs` | 代码生成全新 PPT |
+| 管理、组织、人事、绩效、战略、领导力、变革、跨文化 | （自身处理） | 默认主场景 |
 
 ### 调度原则
 
