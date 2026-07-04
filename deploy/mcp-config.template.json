@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "amap-maps": {
+      "comment": "高德地图 MCP — executive-secretary 通勤/路线规划",
+      "command": "npx",
+      "args": ["-y", "@amap/amap-maps-mcp-server"],
+      "env": { "AMAP_API_KEY": "<your-key>" }
+    },
+    "finance": {
+      "comment": "财经数据 MCP — finance-manager 财务数据",
+      "command": "npx",
+      "args": ["-y", "finance-mcp-server"],
+      "env": { "TUSHARE_TOKEN": "<your-token>" }
+    }
+  }
+}
