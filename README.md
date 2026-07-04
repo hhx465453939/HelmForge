@@ -47,73 +47,151 @@ HelmForge 是 **Forge 三部曲** 的收官之作：
 
 ---
 
-## 🚀 一键部署（差异化选择）
+## 🚀 一键部署
 
-> **📖 先读一分钟：** [`docs/deployment-guide.md`](./docs/deployment-guide.md) 有完整的**决策树**、每种宿主的**独立部署指令**、以及给 Agent 用的**自检 Prompt**。
-> 下面是 5 种最常见场景的速查——别一把梭全装，只装你实际用的宿主。
+> **📋 完整部署指南**：[`docs/deployment-guide.md`](./docs/deployment-guide.md) — 决策树、每宿主详细说明、在线 Agent 内容注入方案、Agent 自检 Prompt。
 
-### 先克隆仓库
+### 方式一：按宿主一键部署（推荐）
 
-```bash
-git clone https://github.com/hhx465453939/HelmForge.git
-cd HelmForge
+找到你的宿主，复制对应的 prompt 粘贴给 Agent，**Agent 会自动 clone 仓库并执行部署**：
+
+#### 🅰️ Claude Code 用户
+
+```text
+帮我把 https://github.com/hhx465453939/HelmForge 部署为 HelmForge 技能包（仅 Claude Code 镜像）。
+
+要求：
+1. git clone https://github.com/hhx465453939/HelmForge.git 到临时目录；
+2. 运行 deploy/deploy.sh --yes --only claude（macOS/Linux）或 deploy/deploy.ps1 -Yes -Only claude（Windows）；
+3. 部署完成后告诉我部署路径和下一步怎么验证（重启 claude 后输入 / 看到 executive-consultant）。
+
+红线：不修改 LICENSE / ETHICS.md；不商业化。
 ```
 
-### 场景速查
+#### 🅱️ Codex CLI 用户
 
-| 你的宿主 | macOS / Linux / WSL / Git Bash | Windows PowerShell |
-|---|---|---|
-| **🅰️ Claude Code**（仅 Claude） | `bash ./deploy/deploy.sh --yes --only claude` | `.\deploy\deploy.ps1 -Yes -Only claude` |
-| **🅱️ Codex CLI**（仅 Codex） | `bash ./deploy/deploy.sh --yes --only codex` | `.\deploy\deploy.ps1 -Yes -Only codex` |
-| **🅲 Antigravity / Gemini CLI** | `bash ./deploy/deploy.sh --yes --only gemini` | `.\deploy\deploy.ps1 -Yes -Only gemini` |
-| **🅳 WorkBuddy / OpenClaw / 龙虾** | `bash ./deploy/deploy.sh --yes --only agents` | `.\deploy\deploy.ps1 -Yes -Only agents` |
-| **🌐 GPT / 豆包 / Claude.ai / 元宝 / Kimi Web**（在线 Agent） | **不用脚本** → 看 [部署指南 §E](./docs/deployment-guide.md#-e-在线-agent-玩法) 走内容注入 |
-| **全都要**（4 个本地镜像一并装） | `bash ./deploy/deploy.sh --yes` | `.\deploy\deploy.ps1 -Yes` |
+```text
+帮我把 https://github.com/hhx465453939/HelmForge 部署为 HelmForge 技能包（仅 Codex 镜像）。
 
-> 💡 `--only` 支持**别名** —— `workbuddy` / `openclaw` / `龙虾` 会自动映射到 `agents`，`antigravity` 映射到 `gemini`。也支持多值：`--only claude,codex`。
+要求：
+1. git clone https://github.com/hhx465453939/HelmForge.git 到临时目录；
+2. 运行 deploy/deploy.sh --yes --only codex（macOS/Linux）或 deploy/deploy.ps1 -Yes -Only codex（Windows）；
+3. 部署完成后告诉我部署路径和下一步怎么验证。
 
-### 完整开关
-
-```
---yes / -Yes                   非交互
---target <dir> / -Target       部署目标（默认 $HOME）
---only <list> / -Only          只部署选中镜像（逗号分隔）
---no-backup / -NoBackup        跳过 pre-deploy 备份
---install-entry-docs           同时把 CLAUDE.md/AGENTS.md/GEMINI.md/OPENCLAW.md 复制到 target 根
---force / -Force               覆盖已有入口文档
---dry-run / -DryRun            只报告不写文件
+红线：不修改 LICENSE / ETHICS.md；不商业化。
 ```
 
-部署完成后目标目录会产出：
-- `deploy-manifest.json` — 部署清单 + MD5
-- `deploy-report.md` — 人类可读的部署总结
-- 可选的 pre-deploy 备份到 `<target>/.helmforge-backup/<timestamp>/`
+#### 🅲 Antigravity / Gemini CLI 用户
 
-### 🤖 让 Agent 自己判断该怎么装（推荐）
+```text
+帮我把 https://github.com/hhx465453939/HelmForge 部署为 HelmForge 技能包（仅 Gemini/Antigravity 镜像）。
 
-如果不确定该用哪种方案，把 [部署指南文末的 Agent 自检 Prompt](./docs/deployment-guide.md#-agent-自检-prompt) 完整贴给你的 AI，它会：
-1. 自检自己是 Claude Code / Codex / WorkBuddy / 浏览器 GPT 中的哪一款
-2. 判断类型（A/B/C/D/E）
-3. 给出精确到你 OS 的部署命令
-4. 告诉你部署后怎么验证生效
+要求：
+1. git clone https://github.com/hhx465453939/HelmForge.git 到临时目录；
+2. 运行 deploy/deploy.sh --yes --only gemini（macOS/Linux）或 deploy/deploy.ps1 -Yes -Only gemini（Windows）；
+3. 部署完成后告诉我部署路径和下一步怎么验证。
 
-### 通用 Agent 一句话部署（无脚本环境 fallback）
+红线：不修改 LICENSE / ETHICS.md；不商业化。
+```
 
-如果你的 harness 不方便跑本地脚本（云端 IDE / 远程 agent 等），把下面这段 prompt 直接丢给 agent：
+#### 🅳 WorkBuddy / OpenClaw / 龙虾 用户
+
+```text
+帮我把 https://github.com/hhx465453939/HelmForge 部署为 HelmForge 技能包（仅 OpenClaw 系镜像，适用于 WorkBuddy / OpenClaw / 龙虾）。
+
+要求：
+1. git clone https://github.com/hhx465453939/HelmForge.git 到临时目录；
+2. 运行 deploy/deploy.sh --yes --only agents（macOS/Linux）或 deploy/deploy.ps1 -Yes -Only agents（Windows）；
+3. 部署完成后告诉我部署路径，以及怎么在 WorkBuddy/OpenClaw 里验证（描述经营场景，看是否触发 finance-manager 等 skill）。
+
+红线：不修改 LICENSE / ETHICS.md；不商业化。
+```
+
+#### 🌐 GPT / 豆包 / Claude.ai / 元宝 / Kimi Web 用户（在线 Agent）
+
+浏览器里的对话式 AI 没有本地文件系统，**不需要跑脚本**。改走**内容注入**方案：
+
+```text
+帮我把 https://github.com/hhx465453939/HelmForge 的 skill 内容加载到当前对话环境。
+
+要求：
+1. 从仓库抓取 .claude/skills/executive-consultant/SKILL.md 和 .claude/skills/finance-manager/SKILL.md 的内容；
+2. 告诉我这两个 skill 的触发词和输出合同；
+3. 接下来的对话中，当我描述经营场景时，请按 executive-consultant 的路由表分诊，调用对应 skill 回答。
+
+红线：不修改原始内容；不商业化；遵循 PolyForm-NC + HelmForge 8 条红线。
+```
+
+> 📖 更多在线 Agent 方案（Custom GPT / Claude Projects / 豆包智能体）见 [`docs/deployment-guide.md §E`](./docs/deployment-guide.md#-e-在线-agent-玩法)。
+
+---
+
+### 方式二：通用 Agent 自检 Prompt（不知道自己是哪款宿主时用）
+
+把下面这段完整贴给你的 Agent，它会自动检测环境并执行对应部署：
 
 ```text
 帮我把 https://github.com/hhx465453939/HelmForge 部署为 HelmForge 技能包。
 
-要求：
-1. clone 仓库到临时目录；
-2. 先读 docs/deployment-guide.md 判断我的宿主属于 A/B/C/D/E 哪一类；
-3. 只部署我实际用的那一份镜像（不要 4 个一把梭）；
-4. 部署完读取对应入口文档（CLAUDE.md / AGENTS.md / GEMINI.md / OPENCLAW.md）中的路由表，
-   把 executive-consultant 作为主调度入口注册；
-5. 输出：判定类型、部署清单、路由表快照、"下一步试用 3 条命令"的建议。
+请先执行以下自检，判断我的宿主环境属于哪一类，然后执行对应部署：
 
-红线：不修改 LICENSE / ETHICS.md；不商业化；遵循 PolyForm-NC + HelmForge 8 条红线。
+【自检步骤】
+1. 你自己是哪一款 Agent？（Claude Code / Codex / Gemini / Antigravity / WorkBuddy / 龙虾 / OpenClaw / ChatGPT / 豆包 / 元宝 / Kimi Web / 其他）
+2. 你运行在什么环境？（本地终端 CLI / 桌面 App / 浏览器）
+3. 我是否已经把 HelmForge 仓库克隆到本地？
+
+【判定表】
+- Claude Code (本地) → 类型 A → git clone + bash ./deploy/deploy.sh --yes --only claude
+- Codex CLI (本地) → 类型 B → git clone + bash ./deploy/deploy.sh --yes --only codex
+- Antigravity / Gemini CLI (本地) → 类型 C → git clone + bash ./deploy/deploy.sh --yes --only gemini
+- WorkBuddy / OpenClaw / 龙虾 (本地桌面) → 类型 D → git clone + bash ./deploy/deploy.sh --yes --only agents
+- 浏览器里的 GPT / 豆包 / Claude.ai / 元宝 / Kimi (在线) → 类型 E → 走内容注入，不跑 deploy 脚本
+
+【产出】
+1. 判定的类型（A/B/C/D/E）+ 一句话理由
+2. 具体到我的 OS（Windows PowerShell 还是 macOS/Linux bash）的部署命令
+3. 部署完成后我需要做什么验证
+4. 如果是类型 E，告诉我需要哪些文件、Instructions 写什么
+
+【禁止】
+- 不要 --yes 一把梭装 4 个镜像，除非我明确说"我全都要"
+- 不要跳过环境自检直接给命令
+- 不要把类型 E 的内容注入方案当成类型 A/B/C/D 的本地部署来处理
+
+详细部署指南：https://github.com/hhx465453939/HelmForge/blob/main/docs/deployment-guide.md
 ```
+
+---
+
+### 方式三：手动 Shell 命令（高级用户）
+
+<details>
+<summary>如果你已经 clone 了仓库，可以直接跑 deploy 脚本（点击展开）</summary>
+
+```bash
+# 克隆仓库
+git clone https://github.com/hhx465453939/HelmForge.git
+cd HelmForge
+
+# macOS / Linux / WSL / Git Bash
+bash ./deploy/deploy.sh --yes --only claude          # Claude Code
+bash ./deploy/deploy.sh --yes --only codex           # Codex CLI
+bash ./deploy/deploy.sh --yes --only gemini          # Antigravity
+bash ./deploy/deploy.sh --yes --only agents          # WorkBuddy/OpenClaw/龙虾
+bash ./deploy/deploy.sh --yes                        # 全量（4 个镜像）
+
+# Windows PowerShell
+powershell -ExecutionPolicy Bypass -File .\deploy\deploy.ps1 -Yes -Only claude
+powershell -ExecutionPolicy Bypass -File .\deploy\deploy.ps1 -Yes -Only codex
+powershell -ExecutionPolicy Bypass -File .\deploy\deploy.ps1 -Yes -Only gemini
+powershell -ExecutionPolicy Bypass -File .\deploy\deploy.ps1 -Yes -Only agents
+powershell -ExecutionPolicy Bypass -File .\deploy\deploy.ps1 -Yes
+```
+
+完整开关：`--yes`、`--target <dir>`、`--only <list>`、`--no-backup`、`--install-entry-docs`、`--force`、`--dry-run`。
+详见 [`docs/deployment-guide.md`](./docs/deployment-guide.md)。
+
+</details>
 
 ---
 
