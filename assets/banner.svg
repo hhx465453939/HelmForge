@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" width="1200" height="300" role="img" aria-label="HelmForge banner">
+  <!-- Gradient background: deep ocean navy -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%"   stop-color="#0A2540"/>
+      <stop offset="55%"  stop-color="#0F2F55"/>
+      <stop offset="100%" stop-color="#12233A"/>
+    </linearGradient>
+    <radialGradient id="flameGlow" cx="50%" cy="50%" r="60%">
+      <stop offset="0%"   stop-color="#F59E0B" stop-opacity="0.55"/>
+      <stop offset="60%"  stop-color="#F59E0B" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#F59E0B" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="300" fill="url(#bgGradient)"/>
+
+  <!-- Subtle horizon rule -->
+  <line x1="0" y1="230" x2="1200" y2="230" stroke="#1E3A5F" stroke-width="1" opacity="0.55"/>
+
+  <!-- Warm glow behind helm -->
+  <circle cx="180" cy="150" r="140" fill="url(#flameGlow)"/>
+
+  <!-- Helm wheel + flame (left side) -->
+  <g transform="translate(180,150)">
+    <circle r="86" fill="none" stroke="#1E3A5F" stroke-width="3"/>
+    <circle r="72" fill="none" stroke="#E5E7EB" stroke-width="5"/>
+    <g stroke="#E5E7EB" stroke-width="5" stroke-linecap="round">
+      <line x1="0"   y1="-72" x2="0"   y2="72"/>
+      <line x1="-72" y1="0"   x2="72"  y2="0"/>
+      <line x1="-51" y1="-51" x2="51"  y2="51"/>
+      <line x1="51"  y1="-51" x2="-51" y2="51"/>
+    </g>
+    <g fill="#F59E0B">
+      <circle cx="0"   cy="-82" r="8"/>
+      <circle cx="0"   cy="82"  r="8"/>
+      <circle cx="-82" cy="0"   r="8"/>
+      <circle cx="82"  cy="0"   r="8"/>
+      <circle cx="-58" cy="-58" r="8"/>
+      <circle cx="58"  cy="-58" r="8"/>
+      <circle cx="-58" cy="58"  r="8"/>
+      <circle cx="58"  cy="58"  r="8"/>
+    </g>
+    <circle r="16" fill="#F59E0B" stroke="#FBBF24" stroke-width="2"/>
+    <circle r="5"  fill="#0A2540"/>
+    <!-- Flame overlapping hub -->
+    <path d="M0 -22 C -12 -8, -14 6, -6 16 C -10 10, -4 6, 0 12 C 4 6, 10 10, 6 16 C 14 6, 12 -8, 0 -22 Z"
+          fill="#F59E0B" opacity="0.95"/>
+    <path d="M0 -12 C -6 -4, -7 6, -3 12 C -1 8, 1 10, 0 14 C -1 10, 1 8, 3 12 C 7 6, 6 -4, 0 -12 Z"
+          fill="#FDE68A" opacity="0.9"/>
+  </g>
+
+  <!-- Text block -->
+  <g font-family="Georgia, 'Times New Roman', serif">
+    <text x="360" y="115" font-size="64" font-weight="700" fill="#FFFFFF" letter-spacing="1">HelmForge</text>
+    <text x="360" y="165" font-size="26" font-weight="500" fill="#F59E0B" letter-spacing="0.5">Forge your enterprise. Take the helm.</text>
+    <text x="360" y="205" font-size="18" font-weight="400" fill="#CBD5E1" font-family="Inter, 'Segoe UI', sans-serif">
+      The AI cockpit for enterprise commanders.
+    </text>
+    <text x="360" y="248" font-size="14" fill="#9CA3AF" letter-spacing="3" font-family="Inter, 'Segoe UI', sans-serif">
+      STRATEGY  ·  FINANCE  ·  LEGAL  ·  NEGOTIATION  ·  GEO-INTEL
+    </text>
+  </g>
+
+  <!-- Bottom-right chip: forge trilogy -->
+  <g transform="translate(1030,250)" font-family="Inter, 'Segoe UI', sans-serif">
+    <rect x="0" y="-22" width="150" height="30" rx="15" fill="#0A2540" stroke="#F59E0B" stroke-width="1"/>
+    <text x="75" y="-2" font-size="12" fill="#F59E0B" text-anchor="middle" letter-spacing="2">FORGE TRILOGY · III</text>
+  </g>
+</svg>
