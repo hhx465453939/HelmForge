@@ -3,11 +3,15 @@
 #   powershell -ExecutionPolicy Bypass -File .\deploy\deploy.ps1 -Yes
 #   powershell -ExecutionPolicy Bypass -File .\deploy\deploy.ps1 -Yes -Target D:\sandbox
 #   powershell -ExecutionPolicy Bypass -File .\deploy\deploy.ps1 -Yes -DryRun
+#   powershell -ExecutionPolicy Bypass -File .\deploy\deploy.ps1 -Yes -Only claude
+#   powershell -ExecutionPolicy Bypass -File .\deploy\deploy.ps1 -Yes -Only agents
+#   powershell -ExecutionPolicy Bypass -File .\deploy\deploy.ps1 -Yes -Only claude,codex
 #
+# See docs/deployment-guide.md for choosing the right mirror(s) for your agent host.
 # Implements the skill-deploy spec (.claude/skills/skill-deploy/SKILL.md):
 #   1. Pre-deploy backup of existing mirror dirs
-#   2. Copy 4 mirror skills (.claude/.codex/.gemini/.agents) into $Target
-#   3. Optional entry-doc install (CLAUDE.md/AGENTS.md/GEMINI.md/OPENCLAW.md)
+#   2. Copy selected mirror skills into $Target
+#   3. Optional entry-doc install (only for selected mirrors)
 #   4. Post-smoothing (4a route consistency, 4b AGENTS.md alignment,
 #                       4c mirror gap, 4d universal-agent reference)
 #   5. Summary: deploy-manifest.json + deploy-report.md + colored stdout
@@ -18,7 +22,8 @@ param(
     [switch]$NoBackup,
     [switch]$InstallEntryDocs,
     [switch]$Force,
-    [switch]$DryRun
+    [switch]$DryRun,
+    [string[]]$Only = @()
 )
 
 # Force UTF-8 output to avoid GBK encoding issues on Windows
@@ -33,10 +38,54 @@ $ErrorActionPreference = 'Stop'
 # ---------------------------------------------------------------------------
 # Resolve repo root (parent of the script's directory)
 # ---------------------------------------------------------------------------
-$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$RepoRoot  = Split-Path -Parent $ScriptDir
-$Mirrors   = @('.claude', '.codex', '.gemini', '.agents')
-$EntryDocs = @('CLAUDE.md', 'AGENTS.md', 'GEMINI.md', 'OPENCLAW.md')
+$ScriptDir  = Split-Path -Parent $MyInvocation.MyCommand.Path
+$RepoRoot   = Split-Path -Parent $ScriptDir
+$AllMirrors   = @('.claude', '.codex', '.gemini', '.agents')
+$AllEntryDocs = @('CLAUDE.md', 'AGENTS.md', 'GEMINI.md', 'OPENCLAW.md')
+
+# --- Apply -Only filter (with aliases) ---
+$mirrorMap = @{
+    'claude'      = @{ dir='.claude';  doc='CLAUDE.md'   }
+    'codex'       = @{ dir='.codex';   doc='AGENTS.md'   }
+    'gemini'      = @{ dir='.gemini';  doc='GEMINI.md'   }
+    'agents'      = @{ dir='.agents';  doc='OPENCLAW.md' }
+    # aliases
+    'workbuddy'   = @{ dir='.agents';  doc='OPENCLAW.md' }
+    'openclaw'    = @{ dir='.agents';  doc='OPENCLAW.md' }
+    'lobster'     = @{ dir='.agents';  doc='OPENCLAW.md' }
+    'antigravity' = @{ dir='.gemini';  doc='GEMINI.md'   }
+}
+
+# accept comma-separated single string as well: -Only "claude,codex"
+if ($Only.Count -eq 1 -and $Only[0] -match ',') {
+    $Only = $Only[0].Split(',')
+}
+
+if ($Only.Count -gt 0) {
+    $Mirrors   = @()
+    $EntryDocs = @()
+    foreach ($tokRaw in $Only) {
+        $tok = $tokRaw.Trim().TrimStart('.').ToLower()
+        if (-not $mirrorMap.ContainsKey($tok)) {
+            Write-Host "ERROR: unknown -Only token: $tokRaw" -ForegroundColor Red
+            Write-Host "Valid tokens: claude, codex, gemini, agents (aliases: workbuddy/openclaw -> agents, antigravity -> gemini)" -ForegroundColor Red
+            exit 2
+        }
+        $entry = $mirrorMap[$tok]
+        if ($Mirrors -notcontains $entry.dir) {
+            $Mirrors   += $entry.dir
+            $EntryDocs += $entry.doc
+        }
+    }
+    if ($Mirrors.Count -eq 0) {
+        Write-Host "ERROR: -Only produced empty mirror list" -ForegroundColor Red
+        exit 2
+    }
+} else {
+    $Mirrors   = $AllMirrors
+    $EntryDocs = $AllEntryDocs
+}
+
 $Timestamp = Get-Date -Format 'yyyyMMdd-HHmmss'
 $IsoStamp  = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
 
@@ -46,6 +95,7 @@ Write-Host "==============================================" -ForegroundColor Cya
 Write-Host ""
 Write-Host "Repo root  : $RepoRoot"
 Write-Host "Target dir : $Target"
+Write-Host "Mirrors    : $($Mirrors -join ' ')"
 Write-Host "Auto-yes   : $Yes"
 Write-Host "NoBackup   : $NoBackup"
 Write-Host "EntryDocs  : $InstallEntryDocs (force=$Force)"
@@ -156,7 +206,7 @@ Write-Host ""
 # ---------------------------------------------------------------------------
 # Step 2: Copy 4 mirror skills (+commands for .claude, +scripts if present)
 # ---------------------------------------------------------------------------
-Write-Host "[2/5] Copy 4 mirrors" -ForegroundColor Green
+Write-Host "[2/5] Copy $($Mirrors.Count) mirror(s): $($Mirrors -join ' ')" -ForegroundColor Green
 foreach ($mirror in $Mirrors) {
     $srcDir = Join-Path $RepoRoot $mirror
     $dstDir = Join-Path $Target   $mirror

@@ -4,7 +4,11 @@
 #   bash ./deploy/deploy.sh --yes
 #   bash ./deploy/deploy.sh --yes --target /path/to/dir
 #   bash ./deploy/deploy.sh --yes --dry-run
+#   bash ./deploy/deploy.sh --yes --only claude          # only Claude Code
+#   bash ./deploy/deploy.sh --yes --only agents          # only OpenClaw / WorkBuddy / 龙虾
+#   bash ./deploy/deploy.sh --yes --only claude,codex    # multiple
 #
+# See docs/deployment-guide.md for choosing the right mirror(s) for your agent host.
 # Implements the skill-deploy spec (.claude/skills/skill-deploy/SKILL.md).
 
 set -euo pipefail
@@ -19,6 +23,7 @@ NO_BACKUP=0
 INSTALL_ENTRY_DOCS=0
 FORCE=0
 DRY_RUN=0
+ONLY=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -29,14 +34,26 @@ while [[ $# -gt 0 ]]; do
         --install-entry-docs)   INSTALL_ENTRY_DOCS=1; shift ;;
         --force)                FORCE=1; shift ;;
         --dry-run)              DRY_RUN=1; shift ;;
+        --only)                 ONLY="$2"; shift 2 ;;
+        --only=*)               ONLY="${1#*=}"; shift ;;
         -h|--help)
             cat <<EOF
-Usage: $0 [--yes] [--target <path>] [--no-backup] [--install-entry-docs] [--force] [--dry-run]
+Usage: $0 [--yes] [--target <path>] [--only <mirror[,mirror]>] [--no-backup] [--install-entry-docs] [--force] [--dry-run]
 
   --yes                 non-interactive
   --target <path>       deploy destination (default: \$HOME)
+  --only <list>         deploy ONLY these mirrors (comma-separated).
+                        Valid: claude, codex, gemini, agents
+                        Aliases: workbuddy=agents, openclaw=agents, antigravity=gemini
+                        Examples:
+                          --only claude              (Claude Code only)
+                          --only agents              (OpenClaw / WorkBuddy / 龙虾 only)
+                          --only claude,codex        (both CLIs, skip Gemini + agents)
+                        Default: all 4 mirrors
+                        See docs/deployment-guide.md for guidance.
   --no-backup           skip pre-deploy backup
   --install-entry-docs  copy CLAUDE.md/AGENTS.md/GEMINI.md/OPENCLAW.md to target
+                        (only entry docs for selected mirrors)
   --force               overwrite existing entry docs
   --dry-run             print actions without touching files
 EOF
@@ -52,8 +69,40 @@ done
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-MIRRORS=(".claude" ".codex" ".gemini" ".agents")
-ENTRY_DOCS=("CLAUDE.md" "AGENTS.md" "GEMINI.md" "OPENCLAW.md")
+ALL_MIRRORS=(".claude" ".codex" ".gemini" ".agents")
+ALL_ENTRY_DOCS=("CLAUDE.md" "AGENTS.md" "GEMINI.md" "OPENCLAW.md")
+
+# Apply --only filter (with aliases)
+if [[ -n "${ONLY}" ]]; then
+    MIRRORS=()
+    ENTRY_DOCS=()
+    IFS=',' read -ra ONLY_TOKENS <<< "${ONLY}"
+    for tok in "${ONLY_TOKENS[@]}"; do
+        # strip whitespace + lowercase + leading dot
+        tok="$(echo "${tok}" | tr '[:upper:]' '[:lower:]' | sed -e 's/^[. \t]*//' -e 's/[ \t]*$//')"
+        # aliases
+        case "${tok}" in
+            workbuddy|openclaw|龙虾|lobster) tok="agents" ;;
+            antigravity)                     tok="gemini" ;;
+        esac
+        case "${tok}" in
+            claude)  MIRRORS+=(".claude");  ENTRY_DOCS+=("CLAUDE.md") ;;
+            codex)   MIRRORS+=(".codex");   ENTRY_DOCS+=("AGENTS.md") ;;
+            gemini)  MIRRORS+=(".gemini");  ENTRY_DOCS+=("GEMINI.md") ;;
+            agents)  MIRRORS+=(".agents");  ENTRY_DOCS+=("OPENCLAW.md") ;;
+            *) echo "ERROR: unknown --only token: ${tok}" >&2
+               echo "Valid tokens: claude, codex, gemini, agents (aliases: workbuddy/openclaw→agents, antigravity→gemini)" >&2
+               exit 2 ;;
+        esac
+    done
+    if [[ ${#MIRRORS[@]} -eq 0 ]]; then
+        echo "ERROR: --only produced empty mirror list" >&2
+        exit 2
+    fi
+else
+    MIRRORS=("${ALL_MIRRORS[@]}")
+    ENTRY_DOCS=("${ALL_ENTRY_DOCS[@]}")
+fi
 
 TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
 ISO_STAMP="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
@@ -65,6 +114,7 @@ echo "=============================================="
 echo ""
 echo "Repo root  : ${REPO_ROOT}"
 echo "Target dir : ${TARGET}"
+echo "Mirrors    : ${MIRRORS[*]}"
 echo "Auto-yes   : ${YES}"
 echo "NoBackup   : ${NO_BACKUP}"
 echo "EntryDocs  : ${INSTALL_ENTRY_DOCS} (force=${FORCE})"
@@ -164,7 +214,7 @@ echo ""
 # ---------------------------------------------------------------------------
 # Step 2: Copy mirrors
 # ---------------------------------------------------------------------------
-echo "[2/5] Copy 4 mirrors"
+echo "[2/5] Copy ${#MIRRORS[@]} mirror(s): ${MIRRORS[*]}"
 declare -A MIRROR_STATS
 MIRRORS_COPIED=()
 for m in "${MIRRORS[@]}"; do

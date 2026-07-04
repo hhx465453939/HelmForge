@@ -47,66 +47,72 @@ HelmForge 是 **Forge 三部曲** 的收官之作：
 
 ---
 
-## 🚀 一键部署
+## 🚀 一键部署（差异化选择）
 
-克隆仓库并运行对应平台的一键部署脚本。默认目标目录是 `$HOME`（即 `%USERPROFILE%` / `~`），会把 4 个镜像 skill（`.claude/` `.codex/` `.gemini/` `.agents/`）融合去重后部署到全局。
+> **📖 先读一分钟：** [`docs/deployment-guide.md`](./docs/deployment-guide.md) 有完整的**决策树**、每种宿主的**独立部署指令**、以及给 Agent 用的**自检 Prompt**。
+> 下面是 5 种最常见场景的速查——别一把梭全装，只装你实际用的宿主。
+
+### 先克隆仓库
 
 ```bash
 git clone https://github.com/hhx465453939/HelmForge.git
 cd HelmForge
 ```
 
-### Windows PowerShell
+### 场景速查
 
-```powershell
-# 默认部署（含备份、含 post-smoothing 校验）
-powershell -ExecutionPolicy Bypass -File .\deploy\deploy.ps1 -Yes
+| 你的宿主 | macOS / Linux / WSL / Git Bash | Windows PowerShell |
+|---|---|---|
+| **🅰️ Claude Code**（仅 Claude） | `bash ./deploy/deploy.sh --yes --only claude` | `.\deploy\deploy.ps1 -Yes -Only claude` |
+| **🅱️ Codex CLI**（仅 Codex） | `bash ./deploy/deploy.sh --yes --only codex` | `.\deploy\deploy.ps1 -Yes -Only codex` |
+| **🅲 Antigravity / Gemini CLI** | `bash ./deploy/deploy.sh --yes --only gemini` | `.\deploy\deploy.ps1 -Yes -Only gemini` |
+| **🅳 WorkBuddy / OpenClaw / 龙虾** | `bash ./deploy/deploy.sh --yes --only agents` | `.\deploy\deploy.ps1 -Yes -Only agents` |
+| **🌐 GPT / 豆包 / Claude.ai / 元宝 / Kimi Web**（在线 Agent） | **不用脚本** → 看 [部署指南 §E](./docs/deployment-guide.md#-e-在线-agent-玩法) 走内容注入 |
+| **全都要**（4 个本地镜像一并装） | `bash ./deploy/deploy.sh --yes` | `.\deploy\deploy.ps1 -Yes` |
 
-# 部署到自定义目录（例如沙盒测试）
-powershell -ExecutionPolicy Bypass -File .\deploy\deploy.ps1 -Yes -Target D:\sandbox
+> 💡 `--only` 支持**别名** —— `workbuddy` / `openclaw` / `龙虾` 会自动映射到 `agents`，`antigravity` 映射到 `gemini`。也支持多值：`--only claude,codex`。
 
-# 干跑（只报告不写文件）
-powershell -ExecutionPolicy Bypass -File .\deploy\deploy.ps1 -Yes -DryRun
+### 完整开关
 
-# 同时安装入口文档（CLAUDE.md / AGENTS.md / GEMINI.md / OPENCLAW.md）到目标根
-powershell -ExecutionPolicy Bypass -File .\deploy\deploy.ps1 -Yes -InstallEntryDocs
 ```
-
-### macOS / Linux Bash
-
-```bash
-chmod +x ./deploy/deploy.sh
-./deploy/deploy.sh --yes
-./deploy/deploy.sh --yes --target ~/sandbox
-./deploy/deploy.sh --yes --dry-run
-./deploy/deploy.sh --yes --install-entry-docs
+--yes / -Yes                   非交互
+--target <dir> / -Target       部署目标（默认 $HOME）
+--only <list> / -Only          只部署选中镜像（逗号分隔）
+--no-backup / -NoBackup        跳过 pre-deploy 备份
+--install-entry-docs           同时把 CLAUDE.md/AGENTS.md/GEMINI.md/OPENCLAW.md 复制到 target 根
+--force / -Force               覆盖已有入口文档
+--dry-run / -DryRun            只报告不写文件
 ```
-
-支持的开关：`--yes`、`--target <dir>`、`--no-backup`、`--install-entry-docs`、`--force`、`--dry-run`（PowerShell 版本对应 `-Yes` / `-Target` / `-NoBackup` / `-InstallEntryDocs` / `-Force` / `-DryRun`）。
 
 部署完成后目标目录会产出：
-
-- `deploy-manifest.json` — 4 镜像的文件清单与 MD5
+- `deploy-manifest.json` — 部署清单 + MD5
 - `deploy-report.md` — 人类可读的部署总结
 - 可选的 pre-deploy 备份到 `<target>/.helmforge-backup/<timestamp>/`
 
-### 通用 Agent 一句话部署（不带脚本的场景）
+### 🤖 让 Agent 自己判断该怎么装（推荐）
 
-如果你的 harness 不方便跑本地脚本（例如某些云端 IDE / 远程 agent），可以把下面这段 prompt 直接丢给 agent，让它替你完成"拉取 → 融合去重 → 部署 → 校验"：
+如果不确定该用哪种方案，把 [部署指南文末的 Agent 自检 Prompt](./docs/deployment-guide.md#-agent-自检-prompt) 完整贴给你的 AI，它会：
+1. 自检自己是 Claude Code / Codex / WorkBuddy / 浏览器 GPT 中的哪一款
+2. 判断类型（A/B/C/D/E）
+3. 给出精确到你 OS 的部署命令
+4. 告诉你部署后怎么验证生效
+
+### 通用 Agent 一句话部署（无脚本环境 fallback）
+
+如果你的 harness 不方便跑本地脚本（云端 IDE / 远程 agent 等），把下面这段 prompt 直接丢给 agent：
 
 ```text
-帮我把 https://github.com/hhx465453939/HelmForge 部署为 HelmForge 全局技能包。
+帮我把 https://github.com/hhx465453939/HelmForge 部署为 HelmForge 技能包。
 
 要求：
 1. clone 仓库到临时目录；
-2. 读取 .claude/ .codex/ .gemini/ .agents/ 四个镜像下所有 skill；
-3. 融合去重（同名 skill 保留 MD5 一致的一份），写到我的 $HOME 下对应目录；
-4. 如果我的 harness 只认某一份（例如 .claude），只落这一份即可；
-5. 部署完读取 CLAUDE.md / AGENTS.md / GEMINI.md / OPENCLAW.md 中至少一份路由表，
-   把 /executive-consultant 作为主调度入口注册；
-6. 输出：部署清单、路由表快照、以及"下一步试用 3 条命令"的建议。
+2. 先读 docs/deployment-guide.md 判断我的宿主属于 A/B/C/D/E 哪一类；
+3. 只部署我实际用的那一份镜像（不要 4 个一把梭）；
+4. 部署完读取对应入口文档（CLAUDE.md / AGENTS.md / GEMINI.md / OPENCLAW.md）中的路由表，
+   把 executive-consultant 作为主调度入口注册；
+5. 输出：判定类型、部署清单、路由表快照、"下一步试用 3 条命令"的建议。
 
-红线：不修改 LICENSE / ETHICS.md；不商业化；一切遵循 PolyForm-NC + HelmForge 8 条红线。
+红线：不修改 LICENSE / ETHICS.md；不商业化；遵循 PolyForm-NC + HelmForge 8 条红线。
 ```
 
 ---

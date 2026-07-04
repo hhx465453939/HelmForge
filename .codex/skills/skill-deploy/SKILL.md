@@ -21,6 +21,7 @@ version: 0.1.0
 - 用户拉了新版 HelmForge 想覆盖旧的
 - 用户改完某个 skill 想校验 4 镜像是否还一致
 - 需要出一份"当前部署健康度"报告
+- 用户只想部署特定宿主（如只装 Claude Code，或只装 WorkBuddy/龙虾）——用 `--only` 参数
 - 用户说：**部署 / 安装 / 装 skill / deploy / install / 后平滑 / 路由检查 / mirror sync**
 
 ## 不适用场景
@@ -382,3 +383,71 @@ loop-engineer   ─── 顶层：从需求到 package 的战役指挥
 ```
 
 skill-deploy 是治理体系的**最末端**，也是**最保守**的一环：不产生新内容，不改现有内容，只让用户环境和仓库对齐、并告诉设计师哪里对不上。
+
+---
+
+## 差异化部署参数（v0.1.1+）
+
+> 📖 **完整部署指南**：[`docs/deployment-guide.md`](../docs/deployment-guide.md) — 含决策树、每宿主独立指令、在线 Agent 内容注入方案、Agent 自检 Prompt。
+
+### `--only` / `-Only` 参数
+
+允许用户**只部署实际使用的宿主镜像**，避免全量安装。
+
+**语法**（bash）：
+```bash
+./deploy/deploy.sh --yes --only <镜像名>           # 单一镜像
+./deploy/deploy.sh --yes --only <镜像1>,<镜像2>     # 多镜像（逗号分隔）
+```
+
+**语法**（PowerShell）：
+```powershell
+.\deploy\deploy.ps1 -Yes -Only <镜像名>             # 单一镜像
+.\deploy\deploy.ps1 -Yes -Only <镜像1>,<镜像2>      # 多镜像（逗号分隔）
+```
+
+**合法镜像名**（及别名）：
+
+| 参数值 | 别名 | 部署到 | 入口文档 |
+|---|---|---|---|
+| `claude` | — | `~/.claude/` | `CLAUDE.md` |
+| `codex` | — | `~/.codex/` | `AGENTS.md` |
+| `gemini` | `antigravity` | `~/.gemini/` | `GEMINI.md` |
+| `agents` | `workbuddy` / `openclaw` / `龙虾` / `lobster` | `~/.agents/` | `OPENCLAW.md` |
+
+**示例**：
+
+```bash
+# WorkBuddy 用户：只装 OpenClaw 系镜像
+./deploy/deploy.sh --yes --only workbuddy
+
+# Claude Code + Codex CLI 双宿主用户
+./deploy/deploy.sh --yes --only claude,codex
+
+# 不确定怎么选？先读 deployment-guide.md
+cat docs/deployment-guide.md
+```
+
+**注意**：
+- `--only` 只影响**部署（copy）阶段**，不影响后平滑检查。后平滑始终比对仓库内 4 镜像的源文件一致性。
+- `--install-entry-docs` 也联动：只部署选中镜像对应的入口文档（如 `--only agents` + `--install-entry-docs` 只复制 `OPENCLAW.md`）。
+- 不传 `--only` 默认行为不变（全量 4 镜像）。
+
+### 在线 Agent（GPT / 豆包 / Claude.ai / 元宝 / Kimi Web）怎么办？
+
+浏览器里的对话式 AI **没有本地文件系统**，不能跑 deploy 脚本。走**内容注入**方案：
+
+1. 把所需 skill 的 `SKILL.md` + `references/` 打包上传到 Custom GPT / Claude Projects / 豆包智能体的知识库
+2. 在 Instructions 里写明触发词映射和输出合同
+3. 单会话临时注入：直接在对话第一条消息里贴 SKILL.md 全文
+
+详见 [`docs/deployment-guide.md §E 在线 Agent 玩法`](../docs/deployment-guide.md#-e-在线-agent-玩法)。
+
+### Agent 自检 Prompt（推荐贴给智能体）
+
+如果用户不知道自己属于哪种部署形态，把 [`docs/deployment-guide.md` 文末的 Agent 自检 Prompt](../docs/deployment-guide.md#-agent-自检-prompt) 完整贴给智能体。它会：
+
+1. 自检自己是 Claude Code / Codex / WorkBuddy / 浏览器 GPT 中的哪一款
+2. 判定类型（A/B/C/D/E）
+3. 给出精确到 OS 的一行部署命令
+4. 告诉用户部署后怎么验证生效
