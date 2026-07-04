@@ -23,11 +23,9 @@
 
 HelmForge 是 **Forge 三部曲** 的收官之作：
 
-```
-CodeForge  🛠️  开发者 → 开源贡献引擎
-VitaForge  🧬  研究者 → 生命科学引擎
-HelmForge  ⚓  掌舵者 → 企业经营引擎   ← 本项目
-```
+- 🛠️ **[CodeForge](https://github.com/PancrePal-xiaoyibao/CodeForge)** — 开发者 → 开源贡献引擎
+- 🧬 **[VitaForge](https://github.com/PancrePal-xiaoyibao/VitaForge)** — 研究者 → 生命科学引擎
+- ⚓ **HelmForge**（本项目）— 掌舵者 → 企业经营引擎
 
 它是面向 **CEO / CFO / COO / 部门负责人 / 创业者 / 家族传承人 / 企业战略与经营团队** 的 AI 经营副驾驶。一个入口（`/executive-consultant` 主调度）智能路由 **18 个专业 skill**，覆盖五大板块：
 
@@ -338,10 +336,10 @@ HelmForge 的招牌玩法 —— **Agent Self-Evolution**。你的 agent（Claud
 
 ### 姊妹项目（Forge 三部曲）
 
-| 项目 | 定位 | 状态 |
+| 项目 | 定位 | 仓库 |
 |---|---|---|
-| 🛠️ **CodeForge** | 开发者 → 开源贡献引擎 | 待发布 |
-| 🧬 **VitaForge** | 研究者 → 生命科学引擎 | 待发布 |
+| 🛠️ **CodeForge** | 开发者 → 开源贡献引擎 | [PancrePal-xiaoyibao/CodeForge](https://github.com/PancrePal-xiaoyibao/CodeForge) |
+| 🧬 **VitaForge** | 研究者 → 生命科学引擎 | [PancrePal-xiaoyibao/VitaForge](https://github.com/PancrePal-xiaoyibao/VitaForge) |
 | ⚓ **HelmForge** | 掌舵者 → 企业经营引擎 | **本项目** |
 
 ---
